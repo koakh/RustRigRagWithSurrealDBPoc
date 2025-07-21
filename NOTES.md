@@ -1,13 +1,31 @@
 # NOTES
 
-nix-shell ~/.nixshell/nix-shell-rust-openssl.nix --run fish
+## BootStrap NixEnv
 
-cargo add rig-surrealdb
+```shell
+$ $ nix-shell ~/.nixshell/nix-shell-rust-openssl.nix --run fish
+```
 
+## Add SurrealDb
+
+```shell
+$ cargo add rig-surrealdb
+```
+
+```toml
+[dependencies]
 surrealdb = { workspace = true, features = ["protocol-ws", "kv-mem"] }
+```
 
-https://github.com/0xPlaygrounds/rig/blob/main/rig-core/examples/ollama_streaming.rs
-https://github.com/0xPlaygrounds/rig/blob/main/rig-surrealdb/Cargo.toml
+## Used Startup Examples
+
+- <https://github.com/0xPlaygrounds/rig/blob/main/rig-core/examples/ollama_streaming.rs>
+- <https://github.com/0xPlaygrounds/rig/blob/main/rig-surrealdb/Cargo.toml>
+
+## Used ChatBot Links
+
+- [Just a moment...](https://claude.ai/chat/ec7135ae-573a-466c-b18b-96b69ba1694a)
+- [Just a moment...](https://claude.ai/chat/f6808d1b-8fb5-454a-b4de-666959834bb8)
 
 ## Start Stack
 
