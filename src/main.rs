@@ -5,6 +5,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use surrealdb::engine::remote::ws::{Client as WsClient, Ws};
 use surrealdb::opt::auth::Root;
+use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -23,7 +24,7 @@ struct OllamaGenerationResponse {
 // Document structure for our RAG system
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Document {
-    pub id: String,
+    pub id: Thing,
     pub content: String,
     pub metadata: HashMap<String, String>,
     pub embedding: Vec<f32>,
@@ -81,7 +82,7 @@ impl RagSystem {
                 DEFINE FIELD embedding ON documents TYPE array<float>;
                 DEFINE FIELD metadata ON documents TYPE object;
                 DEFINE FIELD created_at ON documents TYPE string;
-                DEFINE INDEX embedding_idx ON documents FIELDS embedding MTREE DIMENSION 384;
+                DEFINE INDEX embedding_idx ON documents FIELDS embedding MTREE DIMENSION 768;
                 ",
             )
             .await?;
@@ -106,7 +107,7 @@ impl RagSystem {
         Ok(embedding.embedding)
     }
 
-    // Store document with embedding
+    // Store document with embedding - FIXED VERSION
     pub async fn store_document(
         &self,
         content: &str,
@@ -115,23 +116,30 @@ impl RagSystem {
         let embedding = self.generate_embedding(content).await?;
         let doc_id = Uuid::new_v4().to_string();
 
+        // Create the record ID as a tuple for SurrealDB
+        let record_id = ("documents", &doc_id);
+
         let doc = Document {
-            id: doc_id.clone(),
+            id: Thing::from(("documents", doc_id.as_str())),
             content: content.to_string(),
             embedding,
             metadata,
             created_at: chrono::Utc::now().to_rfc3339(),
         };
 
-        let _documents: Vec<Document> = self
+        // Fix: Use the correct method to create and return the document
+        let created_doc: Document = self
             .db
-            .create("documents")
+            .create(record_id)
             .content(doc)
             .await?
             .ok_or_else(|| anyhow::anyhow!("Failed to create document"))?;
 
-        info!("Document stored successfully with ID: {}", doc_id);
-        Ok(doc_id)
+        info!(
+            "Document stored successfully with ID: {}",
+            created_doc.id.id
+        );
+        Ok(created_doc.id.id.to_string())
     }
 
     // Store multiple documents
@@ -161,7 +169,7 @@ impl RagSystem {
                 "
                 SELECT * FROM documents
                 WHERE vector::similarity::cosine(embedding, $embedding) > 0.5
-                ORDER BY vector::similarity::cosine(embedding, $embedding) DESC
+                ORDER BY similarity DESC
                 LIMIT $limit
                 ",
             )
@@ -327,7 +335,7 @@ async fn main() -> Result<()> {
     println!("Total documents in knowledge base: {}", all_docs.len());
 
     for doc in all_docs {
-        println!("- Document ID: {}", doc.id);
+        println!("- Document ID: {}", doc.id.id);
         println!(
             "  Content preview: {}...",
             doc.content.chars().take(100).collect::<String>()
