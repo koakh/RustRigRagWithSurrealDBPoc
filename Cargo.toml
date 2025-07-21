@@ -1,0 +1,25 @@
+[package]
+name = "rag_system"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Rig - Main RAG framework
+rig-core = "0.15.1"
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+# JSON handling
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Error handling
+anyhow = "1.0"
+# UUID for document IDs
+uuid = { version = "1.0", features = ["v4"] }
+# Additional utilities
+tracing = "0.1"
+tracing-subscriber = "0.3"
+# HTTP client for Ollama (since rig-core handles the abstractions)
+reqwest = { version = "0.12.22", features = ["json"] }
+# SurrealDB client
+surrealdb = { version = "2.3.7", features = ["protocol-ws", "protocol-http"] }
+chrono = "0.4.41"

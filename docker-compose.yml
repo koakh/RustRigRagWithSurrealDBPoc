@@ -1,0 +1,48 @@
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2.1.4
+    hostname: surrealdb
+    container_name: surrealdb
+    networks:
+      - c3-network
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    user: 65532:65532
+    volumes:
+      - ./volumes/surrealdb/data:/data
+    command: start --log=trace --user=root --pass=root --bind 0.0.0.0:8000 surrealkv:///data
+
+  ollama:
+    image: hub.critical-links.com/c3-system-service-ollama:1.0.2
+    hostname: ollama
+    container_name: ollama
+    networks:
+      - c3-network
+    restart: unless-stopped
+    ports:
+      # expose port to outside, useful for developer and remote connections
+      - 11434:11434
+    volumes:
+      - ./volumes/ollama/root/.ollama:/root/.ollama
+    devices:
+      - /dev/dri:/dev/dri
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+    # defaults to 32G if not set
+    mem_limit: ${MEM_LIMIT:-32G}
+    # defaults to 16g if not set
+    shm_size: ${SHM_SIZE:-16g}
+    # equivalent to -i
+    stdin_open: true
+    tty: true
+
+networks:
+  c3-network:
+    driver: bridge
+    ipam:
+      driver: default
+    driver_opts:
+      com.docker.network.bridge.name: br0-docker
