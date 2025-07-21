@@ -1,4 +1,5 @@
 use anyhow::Result;
+use rag_system::{Cli, Configuration};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -43,6 +44,10 @@ pub struct RagSystem {
 impl RagSystem {
     pub async fn new(
         db_url: &str,
+        db_pass: &str,
+        db_user: &str,
+        db_ns: &str,
+        db_db: &str,
         ollama_url: &str,
         embedding_model: &str,
         generation_model: &str,
@@ -50,11 +55,11 @@ impl RagSystem {
         // Connect to SurrealDB
         let db = Surreal::new::<Ws>(db_url).await?;
         db.signin(Root {
-            username: "root",
-            password: "root",
+            username: db_user,
+            password: db_pass,
         })
         .await?;
-        db.use_ns("rag").use_db("documents").await?;
+        db.use_ns(db_ns.to_owned()).use_db(db_db.to_owned()).await?;
 
         // Create HTTP client for Ollama
         let ollama_client = Client::new();
@@ -258,6 +263,21 @@ impl RagSystem {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Load environment variables from .env file.
+    dotenvy::dotenv().expect("Failed to read .env file");
+    // Init Environment Configuration
+
+    // let env_cfg: Configuration = from_env().expect("Error loading configuration...");
+    let env_cfg = envy::prefixed("APP_")
+        .from_env::<Configuration>()
+        .expect("Error loading configuration...");
+    println!("{:#?}", env_cfg);
+
+    // Run command Line App
+    Cli::run();
+
+    todo!();
+
     // Initialize logging
     tracing_subscriber::fmt::init();
 
@@ -265,13 +285,16 @@ async fn main() -> Result<()> {
 
     // Initialize RAG system
     let rag = RagSystem::new(
-        "127.0.0.1:8000",         // SurrealDB URL
-        "http://localhost:11434", // Ollama URL
-        "nomic-embed-text",       // Embedding model
-        "llama3.2",               // Generation model
+        &env_cfg.surreal_db_url,
+        &env_cfg.surreal_db_user,
+        &env_cfg.surreal_db_pass,
+        &env_cfg.surreal_db_ns,
+        &env_cfg.surreal_db_db,
+        &env_cfg.ollama_url,
+        &env_cfg.ollama_embedding_model,
+        &env_cfg.ollama_generation_model,
     )
     .await?;
-
     // Initialize database schema
     rag.init_schema().await?;
 
