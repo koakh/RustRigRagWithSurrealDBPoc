@@ -1,9 +1,11 @@
-use clap::{Arg, Command};
+use super::Cli;
+use clap::Command;
+use tracing::{error, info};
 
-pub struct Cli {}
+use crate::{init_schema, RagSystem};
 
 impl Cli {
-    pub fn run() {
+    pub async fn run(rag: &RagSystem) {
         let mut cmd = Command::new("RigRagPoc")
             .version("1.0")
             .about("Rig Rag Rust PoC CLI")
@@ -55,10 +57,11 @@ impl Cli {
             //         println!("Hello, {}!", name);
             //     }
             // }
-            Some(("init", sub_matches)) => {
-                println!("Init");
-            }
-            Some(("query", sub_matches)) => {
+            Some(("init", _sub_matches)) => match init_schema(rag).await {
+                Ok(_) => info!("Init RAG SurrealDB Schema and Sample Documents"),
+                Err(e) => error!("{}", e),
+            },
+            Some(("query", _sub_matches)) => {
                 println!("query");
             }
             _ => {
