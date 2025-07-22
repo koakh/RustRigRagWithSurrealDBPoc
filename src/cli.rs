@@ -1,69 +1,37 @@
-use super::Cli;
 use clap::Command;
 use tracing::{error, info};
 
-use crate::{init_schema, RagSystem};
+use crate::{info, init_schema, query, RagSystem};
+
+pub struct Cli {}
 
 impl Cli {
     pub async fn run(rag: &RagSystem) {
-        let mut cmd = Command::new("RigRagPoc")
+        let mut cmd = Command::new("rigrag")
             .version("1.0")
             .about("Rig Rag Rust PoC CLI")
-            // .subcommand(
-            //     Command::new("add")
-            //         .about("Adds two numbers")
-            //         .arg(
-            //             Arg::new("num1")
-            //                 .help("First number")
-            //                 .required(true)
-            //                 .index(1),
-            //         )
-            //         .arg(
-            //             Arg::new("num2")
-            //                 .help("Second number")
-            //                 .required(true)
-            //                 .index(2),
-            //         ),
-            // )
-            // .subcommand(
-            //     Command::new("greet")
-            //         .about("Greets the user")
-            //         .arg(Arg::new("name").help("Your name").required(true).index(1)),
-            // )
             .subcommand(
                 Command::new("init")
                     .about("Init RAG system: SurrealDB Schema and Sample Documents"),
             )
-            .subcommand(Command::new("query").about("Greets the user"));
+            .subcommand(Command::new("info").about("Get Knowledge base info"))
+            .subcommand(Command::new("query").about("Query knowledge base sample documents"));
 
         let matches = cmd.clone().get_matches();
 
         match matches.subcommand() {
-            // Some(("add", sub_matches)) => {
-            //     let num1: i32 = sub_matches
-            //         .get_one::<String>("num1")
-            //         .unwrap()
-            //         .parse()
-            //         .unwrap();
-            //     let num2: i32 = sub_matches
-            //         .get_one::<String>("num2")
-            //         .unwrap()
-            //         .parse()
-            //         .unwrap();
-            //     println!("Sum: {}", num1 + num2);
-            // }
-            // Some(("greet", sub_matches)) => {
-            //     if let Some(name) = sub_matches.get_one::<String>("name") {
-            //         println!("Hello, {}!", name);
-            //     }
-            // }
             Some(("init", _sub_matches)) => match init_schema(rag).await {
                 Ok(_) => info!("Init RAG SurrealDB Schema and Sample Documents"),
                 Err(e) => error!("{}", e),
             },
-            Some(("query", _sub_matches)) => {
-                println!("query");
-            }
+            Some(("info", _sub_matches)) => match info(rag).await {
+                Ok(_) => info!("Knowledge base Info"),
+                Err(e) => error!("{}", e),
+            },
+            Some(("query", _sub_matches)) => match query(rag).await {
+                Ok(_) => info!("Query Knowledge base"),
+                Err(e) => error!("{}", e),
+            },
             _ => {
                 // Print help if no subcommand is matched
                 let _ = cmd.print_help();

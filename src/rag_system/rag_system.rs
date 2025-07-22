@@ -19,6 +19,7 @@ pub struct RagSystem {
     ollama_client: Client,
     ollama_url: String,
     embedding_model: String,
+    pub embedding_model_dimension: u16,
     generation_model: String,
 }
 
@@ -31,6 +32,7 @@ impl RagSystem {
         db_db: &str,
         ollama_url: &str,
         embedding_model: &str,
+        embedding_model_dimension: u16,
         generation_model: &str,
     ) -> Result<Self> {
         // Connect to SurrealDB
@@ -53,14 +55,15 @@ impl RagSystem {
             ollama_url: ollama_url.to_string(),
             embedding_model: embedding_model.to_string(),
             generation_model: generation_model.to_string(),
+            embedding_model_dimension,
         })
     }
 
     // Initialize database schema
-    pub async fn init_schema(&self) -> Result<()> {
+    pub async fn init_schema(&self, embedding_model_dimension: u16) -> Result<()> {
         // Create documents table with vector index
         self.db
-            .query(
+            .query(format!(
                 "
                 DEFINE TABLE documents SCHEMAFULL;
                 DEFINE FIELD id ON documents TYPE string;
@@ -68,12 +71,13 @@ impl RagSystem {
                 DEFINE FIELD embedding ON documents TYPE array<float>;
                 DEFINE FIELD metadata ON documents TYPE object;
                 DEFINE FIELD created_at ON documents TYPE string;
-                DEFINE INDEX embedding_idx ON documents FIELDS embedding MTREE DIMENSION 768;
+                DEFINE INDEX embedding_idx ON documents FIELDS embedding MTREE DIMENSION {};
                 ",
-            )
+                embedding_model_dimension
+            ))
             .await?;
 
-        info!("Database schema initialized");
+        info!("Database schema initialized with dimensions: {}", embedding_model_dimension);
         Ok(())
     }
 

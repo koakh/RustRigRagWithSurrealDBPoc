@@ -6,7 +6,7 @@ use crate::RagSystem;
 
 pub async fn init_schema(rag: &RagSystem) -> Result<()> {
     // Initialize database schema
-    rag.init_schema().await?;
+    rag.init_schema(rag.embedding_model_dimension).await?;
 
     // Sample documents to add to the knowledge base
     let documents = vec![

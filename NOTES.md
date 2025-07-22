@@ -3,7 +3,7 @@
 ## BootStrap NixEnv
 
 ```shell
-$ $ nix-shell ~/.nixshell/nix-shell-rust-openssl.nix --run fish
+$ nix-shell ~/.nixshell/nix-shell-rust-openssl.nix --run fish
 ```
 
 ## Add SurrealDb
@@ -34,6 +34,7 @@ $ mkdir volumes/surrealdb/
 $ sudo chown 65532:65532 -R volumes/surrealdb/
 $ docker-compose up -d
 $ docker exec ollama ./ollama pull nomic-embed-text
+$ docker exec ollama ./ollama pull bge-m3:567m
 $ docker exec ollama ./ollama pull llama3.2
 $ docker exec ollama ./ollama list
 ```
@@ -52,3 +53,14 @@ Caused by:
 ```
 
 fix: change `DEFINE INDEX embedding_idx ON documents FIELDS embedding MTREE DIMENSION 384;` to `DEFINE INDEX embedding_idx ON documents FIELDS embedding MTREE DIMENSION 768;`
+
+## When Change to Other LLM Server Query errors
+
+in machines
+
+- APP_OLLAMA_URL=http://192.168.90.104:11434
+- APP_OLLAMA_URL=http://192.168.90.133:11434
+
+### Problem #1 : ollamagpu ollama[2874430]: decode: cannot decode batches with this context (use llama_encode() instead)
+
+WIP:

@@ -7,6 +7,7 @@
     "nomic",
     "ollama",
     "openai",
-    "reqwest"
+    "reqwest",
+    "rigrag"
   ]
 }
