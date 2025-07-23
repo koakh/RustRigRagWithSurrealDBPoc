@@ -8,6 +8,7 @@ use surrealdb::Surreal;
 use tracing::{ info, warn };
 use uuid::Uuid;
 use crate::rag_system::structures::Document;
+use crate::RAG_RETRIEVE_SIMILAR_DOCUMENT_CHUNKS;
 
 use super::structures::{ DocumentMetaData, OllamaEmbeddingResponse, OllamaGenerationResponse };
 
@@ -153,7 +154,7 @@ impl RagSystem {
             .bind(("limit", limit)).await?
             .take(0)?;
 
-        info!("Retrieved {} similar documents", results.len());
+        info!("Retrieved {} similar document(s) chunks", results.len());
         Ok(results)
     }
 
@@ -195,7 +196,7 @@ impl RagSystem {
         info!("Processing query: {}", question);
 
         // Step 1: Retrieve similar documents
-        let similar_docs = self.retrieve_similar(question, 5).await?;
+        let similar_docs = self.retrieve_similar(question, RAG_RETRIEVE_SIMILAR_DOCUMENT_CHUNKS).await?;
 
         if similar_docs.is_empty() {
             warn!("No relevant documents found in the knowledge base");

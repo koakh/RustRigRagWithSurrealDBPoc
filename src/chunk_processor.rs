@@ -3,7 +3,7 @@ use std::borrow::Cow;
 
 /// Sanitizes a string by removing or replacing problematic characters
 /// that can cause issues with SurrealDB serialization
-pub fn _sanitize_chunk(input: &str) -> String {
+pub fn sanitize_chunk(input: &str) -> String {
     // Method 1: Simple NUL byte removal
     input.replace('\0', "")
 }
@@ -31,24 +31,18 @@ pub fn sanitize_chunk_comprehensive(input: &str) -> String {
 
 /// Zero-copy approach for better performance with large chunks
 pub fn _sanitize_chunk_cow(input: &str) -> Cow<str> {
-    if input.contains('\0') {
-        Cow::Owned(input.replace('\0', ""))
-    } else {
-        Cow::Borrowed(input)
-    }
+    if input.contains('\0') { Cow::Owned(input.replace('\0', "")) } else { Cow::Borrowed(input) }
 }
 
 /// Validates UTF-8 and fixes any issues
 pub fn _ensure_valid_utf8(input: &[u8]) -> String {
-    String::from_utf8_lossy(input)
-        .replace('\0', "")
-        .to_string()
+    String::from_utf8_lossy(input).replace('\0', "").to_string()
 }
 
 /// Advanced sanitization with character replacement options
 pub fn _sanitize_chunk_advanced(input: &str, replace_nul_with: &str) -> String {
     let mut result = String::with_capacity(input.len());
-    
+
     for c in input.chars() {
         match c {
             '\0' => result.push_str(replace_nul_with),
@@ -59,7 +53,7 @@ pub fn _sanitize_chunk_advanced(input: &str, replace_nul_with: &str) -> String {
             _ => result.push(c),
         }
     }
-    
+
     // Normalize whitespace
     result.split_whitespace().collect::<Vec<_>>().join(" ")
 }
@@ -71,7 +65,7 @@ mod tests {
     #[test]
     fn test_sanitize_chunk() {
         let dirty = "Hello\0World\0Test";
-        let clean = _sanitize_chunk(dirty);
+        let clean = sanitize_chunk(dirty);
         assert_eq!(clean, "HelloWorldTest");
         assert!(!clean.contains('\0'));
     }
@@ -89,11 +83,11 @@ mod tests {
     fn test_cow_approach() {
         let clean_text = "Hello World";
         let dirty_text = "Hello\0World";
-        
+
         // Should not allocate for clean text
         let result1 = _sanitize_chunk_cow(clean_text);
         assert!(matches!(result1, Cow::Borrowed(_)));
-        
+
         // Should allocate for dirty text
         let result2 = _sanitize_chunk_cow(dirty_text);
         assert!(matches!(result2, Cow::Owned(_)));

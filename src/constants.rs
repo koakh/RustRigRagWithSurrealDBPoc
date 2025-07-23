@@ -1,0 +1,2 @@
+pub const RAG_CHUNK_SIZE: usize = 2000;
+pub const RAG_RETRIEVE_SIMILAR_DOCUMENT_CHUNKS: usize = 10;

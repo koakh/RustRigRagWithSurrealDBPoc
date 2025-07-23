@@ -1,7 +1,15 @@
 use clap::Command;
 use tracing::{ error, info };
 
-use crate::{ info, init_documents, init_pdf_documents, init_schema, query, RagSystem };
+use crate::{
+    info,
+    init_documents,
+    init_pdf_documents,
+    init_schema,
+    query_pdf_documents,
+    query_documents,
+    RagSystem,
+};
 
 pub struct Cli {}
 
@@ -14,7 +22,12 @@ impl Cli {
             .subcommand(Command::new("init-schema").about("Init vectorDB Schema"))
             .subcommand(Command::new("init-documents").about("Init sample documents"))
             .subcommand(Command::new("init-pdf-documents").about("Init PDF sample documents"))
-            .subcommand(Command::new("query").about("Query knowledge base sample documents"));
+            .subcommand(
+                Command::new("query-documents").about("Query knowledge base sample documents")
+            )
+            .subcommand(
+                Command::new("query-pdf-documents").about("Query knowledge base PDF documents")
+            );
 
         let matches = cmd.clone().get_matches();
 
@@ -39,9 +52,14 @@ impl Cli {
                     Ok(_) => info!("Finished PDF sample documents initialization"),
                     Err(e) => error!("{}", e),
                 }
-            Some(("query", _sub_matches)) =>
-                match query(rag).await {
-                    Ok(_) => info!("Finished knowledge base sample documents query"),
+            Some(("query-documents", _sub_matches)) =>
+                match query_documents(rag).await {
+                    Ok(_) => info!("Finished query knowledge base sample documents"),
+                    Err(e) => error!("{}", e),
+                }
+            Some(("query-pdf-documents", _sub_matches)) =>
+                match query_pdf_documents(rag).await {
+                    Ok(_) => info!("Finished query knowledge base pdf documents"),
                     Err(e) => error!("{}", e),
                 }
             _ => {
