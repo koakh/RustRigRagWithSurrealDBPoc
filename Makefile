@@ -1,6 +1,9 @@
 LOG_DEFAULT_LEVEL := DEBUG;
 SHELL := /bin/bash
 
+env:
+	@nix-shell ~/.nixshell/nix-shell-rust-openssl.nix --run fish
+
 build:
 	@cargo build
 

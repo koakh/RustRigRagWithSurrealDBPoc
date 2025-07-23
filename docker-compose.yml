@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     ports:
       - 8000:8000
-    user: 65532:65532
+    # user: 65532:65532
     volumes:
       - ./volumes/surrealdb/data:/data
     command: start --log=trace --user=root --pass=root --bind 0.0.0.0:8000 surrealkv:///data

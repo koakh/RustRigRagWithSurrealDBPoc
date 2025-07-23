@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Rig - Main RAG framework
-rig-core = "0.15.1"
+rig-core = { version = "0.15.1", features = ["pdf"] }
 # Async runtime
 tokio = { version = "1.0", features = ["full"] }
 # JSON handling
